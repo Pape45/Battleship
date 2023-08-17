@@ -4,6 +4,7 @@ public class Ship {
     private String shipName;
     private int shipLength;
     private String[] coordinates;
+    private String status;
 
     public Ship(String shipName, int shipLength) {
         this.shipName = shipName;
@@ -32,5 +33,13 @@ public class Ship {
 
     public void setCoordinates(String[] coordinates) {
         this.coordinates = coordinates;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

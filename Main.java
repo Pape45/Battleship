@@ -8,7 +8,18 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String[][] field = initialiseFieldWithShips();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            String[][] field = initialiseFieldWithShips(reader);
+
+            System.out.println("\nThe game starts !\n");
+
+            startingShootAtRandomCoordinates(field, reader);
+
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
+
     }
 
     public static Ship[] createShips() {
@@ -51,37 +62,29 @@ public class Main {
         }
     }
 
-
-    private static String[][] initialiseFieldWithShips() {
+    private static String[][] initialiseFieldWithShips(BufferedReader reader) throws IOException {
 
         Ship[] ships = createShips();
         String[][] field = createField();
         String coordinates;
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-
-            for (int i = 0; i < 5; i++) {
-
-                showField(field);
-                System.out.println("\nEnter the coordinates of the " + ships[i].getShipName() + ":\n");
-                coordinates = reader.readLine();
-
-                while (!checkCoordinatesCoherence(coordinates, ships[i].getShipLength(), ships[i].getShipName())
-                        || !putShipsOnField(field, coordinates))
-                {
-                    coordinates = reader.readLine();
-                }
-            }
+        for (int i = 0; i < 5; i++) {
 
             showField(field);
+            System.out.println("\nEnter the coordinates of the " + ships[i].getShipName() + ":\n");
+            coordinates = reader.readLine();
 
-        } catch (IOException e) {
-            System.out.println("Error");
+            while (!checkCoordinatesCoherence(coordinates, ships[i].getShipLength(), ships[i].getShipName())
+                    || !putShipsOnField(field, coordinates))
+            {
+                coordinates = reader.readLine();
+            }
         }
+
+        showField(field);
 
         return field;
     }
-
 
     private static boolean checkCoordinatesCoherence(String firstCoordinates, int shipLength, String shipName) {
         if (!firstCoordinates.contains(" ")) {
@@ -180,7 +183,7 @@ public class Main {
 
             for (int i = indexToStartFilling; i <= indexToStopFilling ; i++) {
                 if (checkTooCloseShip(field, indexToFixed, i)) {
-                    System.out.println("Error! You placed it too close to another one. Try again:\n");
+                    System.out.println("\nError! You placed it too close to another one. Try again:\n");
                     return false;
                 }
             }
@@ -279,6 +282,74 @@ public class Main {
         }
 
         return "";
+    }
+
+    private static void startingShootAtRandomCoordinates(String[][] field, BufferedReader reader) throws IOException {
+
+        showField(field);
+        String randomCoordinates, indexOfCoordinatesInput;
+        int leftCoordinates, rightCoordinates;
+
+        while (true) {
+            System.out.println("\nTake a shot !\n");
+
+            randomCoordinates = reader.readLine();
+
+            while (!checkCoordinatesCoherenceForShooting(randomCoordinates)) {
+                randomCoordinates = reader.readLine();
+            }
+
+            indexOfCoordinatesInput = searchRightIndexInField(randomCoordinates);
+            leftCoordinates = getFirstCelIndex(indexOfCoordinatesInput.split(""));
+            rightCoordinates = getSecondCelIndex(indexOfCoordinatesInput.split(""));
+
+            if (shootAtCoordinates(leftCoordinates, rightCoordinates, field)) {
+                System.exit(0);
+            }
+        }
+
+
+    }
+
+    private static boolean checkCoordinatesCoherenceForShooting(String coordinates) {
+        String[] splitCoordinates = coordinates.split("");
+
+        if (splitCoordinates.length == 2) {
+            if (splitCoordinates[0].matches("[K-Z]") || Integer.parseInt(splitCoordinates[1]) <= 0) {
+                System.out.println("\nError! You entered wrong coordinates! Try again:\n");
+
+                return false;
+            }
+        } else if (splitCoordinates.length == 3) {
+            if (splitCoordinates[0].matches("[K-Z]") || Integer.parseInt(splitCoordinates[1] + splitCoordinates[2]) > 10) {
+                System.out.println("\nError! You entered wrong coordinates! Try again:\n");
+
+                return false;
+            }
+        } else {
+            System.out.println("\nError! You entered wrong coordinates! Try again:\n");
+
+            return false;
+        }
+
+        return true;
+
+    }
+
+    private static boolean shootAtCoordinates(int left, int right, String[][] field) {
+        if (field[left][right].equals("O")) {
+            field[left][right] = "X";
+            showField(field);
+            System.out.println("\nYou hit a ship!\n");
+
+            return true;
+        } else {
+            field[left][right] = "M";
+            System.out.println("\nYou missed !\n");
+            showField(field);
+
+            return false;
+        }
     }
 }
 
