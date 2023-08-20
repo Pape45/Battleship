@@ -1,45 +1,37 @@
 package battleship;
 
-public class Ship {
-    private String shipName;
-    private int shipLength;
-    private String[] coordinates;
-    private String status;
+public enum Ship {
 
-    public Ship(String shipName, int shipLength) {
-        this.shipName = shipName;
-        this.shipLength = shipLength;
+    AF("Aircraft Carrier ( 5 cells )", 5, ""),
+    BS("Battleship (4 cells)", 4, ""),
+    SM("Submarine (3 cells)", 3, ""),
+    CR("cruiser (3 cells)", 3, ""),
+    DT("destroyer (2 cells)", 2, "");
+
+    private final String name;
+    private final int length;
+    private String coordinatesCovered;
+
+    Ship(String name, int length, String coordinatesCovered) {
+        this.name = name;
+        this.length = length;
+        this.coordinatesCovered = coordinatesCovered;
     }
 
-    public String getShipName() {
-        return shipName;
+    public String getName() {
+        return name;
     }
 
-    public void setShipName(String shipName) {
-        this.shipName = shipName;
+    public int getLength() {
+        return length;
     }
 
-    public int getShipLength() {
-        return shipLength;
+    public void addCoordinatesCovered(String coordinateToAdd) {
+        this.coordinatesCovered += coordinateToAdd;
     }
 
-    public void setShipLength(int shipLength) {
-        this.shipLength = shipLength;
+    public void removeCoordinatesCovered(String coordinateToRemove) {
+        coordinatesCovered = this.coordinatesCovered.replace(coordinateToRemove, "");
     }
 
-    public String[] getCoordinates() {
-        return coordinates;
-    }
-
-    public void setCoordinates(String[] coordinates) {
-        this.coordinates = coordinates;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
 }

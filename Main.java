@@ -8,12 +8,17 @@ public class Main {
 
     public static void main(String[] args) {
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-            String[][] field = initialiseFieldWithShips(reader);
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            String[][] field = new String[11][11];
+            String[][] fogOfWar = new String[11][11];
+
+            createField(field, fogOfWar);
+
+            initialiseFieldWithShips(reader, field, fogOfWar);
 
             System.out.println("\nThe game starts !\n");
 
-            startingShootAtRandomCoordinates(field, reader);
+            startingShootAtRandomCoordinates(field, fogOfWar, reader);
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -25,31 +30,28 @@ public class Main {
     public static Ship[] createShips() {
 
         return new Ship[]{
-                new Ship("Aircraft Carrier (5 cells)",5),
-                new Ship("Battleship (4 cells)",4),
-                new Ship("Submarine (3 cells)",3),
-                new Ship("cruiser (3 cells)",3),
-                new Ship("destroyer (2 cells)",2),
+                Ship.AF, Ship.BS, Ship.SM, Ship.CR, Ship.DT
         };
     }
 
-    private static String[][] createField() {
+    private static void createField(String[][] field, String[][] fogOfWar) {
 
-        String[][] field = new String[11][11];
         char letter = 'A';
 
         field[0][0] = " ";
+        fogOfWar[0][0] = " ";
 
         for (int i = 1; i < field.length; i++) {
             for (int j = 1; j < field.length; j++) {
                 field[i][j] = "~";
+                fogOfWar[i][j] = "~";
             }
             field[0][i] = String.valueOf(i);
             field[i][0] = String.valueOf(letter);
+            fogOfWar[0][i] = String.valueOf(i);
+            fogOfWar[i][0] = String.valueOf(letter);
             letter++;
         }
-
-        return field;
     }
 
     private static void showField(String[][] field) {
@@ -62,19 +64,20 @@ public class Main {
         }
     }
 
-    private static String[][] initialiseFieldWithShips(BufferedReader reader) throws IOException {
+    private static void initialiseFieldWithShips(BufferedReader reader, String[][] field, String[][] fogOfWar) throws IOException {
 
         Ship[] ships = createShips();
-        String[][] field = createField();
+
+        createField(field, fogOfWar);
         String coordinates;
 
         for (int i = 0; i < 5; i++) {
 
             showField(field);
-            System.out.println("\nEnter the coordinates of the " + ships[i].getShipName() + ":\n");
+            System.out.println("\nEnter the coordinates of the " + ships[i].getName() + ":\n");
             coordinates = reader.readLine();
 
-            while (!checkCoordinatesCoherence(coordinates, ships[i].getShipLength(), ships[i].getShipName())
+            while (!checkCoordinatesCoherence(coordinates, ships[i].getLength(), ships[i].getName())
                     || !putShipsOnField(field, coordinates))
             {
                 coordinates = reader.readLine();
@@ -82,8 +85,6 @@ public class Main {
         }
 
         showField(field);
-
-        return field;
     }
 
     private static boolean checkCoordinatesCoherence(String firstCoordinates, int shipLength, String shipName) {
@@ -284,13 +285,13 @@ public class Main {
         return "";
     }
 
-    private static void startingShootAtRandomCoordinates(String[][] field, BufferedReader reader) throws IOException {
+    private static void startingShootAtRandomCoordinates(String[][] field, String[][] fogOfWar, BufferedReader reader) throws IOException {
 
-        showField(field);
+        showField(fogOfWar);
         String randomCoordinates, indexOfCoordinatesInput;
         int leftCoordinates, rightCoordinates;
 
-        while (true) {
+        while (checkRemainingShips(field)) {
             System.out.println("\nTake a shot !\n");
 
             randomCoordinates = reader.readLine();
@@ -303,12 +304,8 @@ public class Main {
             leftCoordinates = getFirstCelIndex(indexOfCoordinatesInput.split(""));
             rightCoordinates = getSecondCelIndex(indexOfCoordinatesInput.split(""));
 
-            if (shootAtCoordinates(leftCoordinates, rightCoordinates, field)) {
-                System.exit(0);
-            }
+            shootAtCoordinates(leftCoordinates, rightCoordinates, field, fogOfWar);
         }
-
-
     }
 
     private static boolean checkCoordinatesCoherenceForShooting(String coordinates) {
@@ -336,20 +333,32 @@ public class Main {
 
     }
 
-    private static boolean shootAtCoordinates(int left, int right, String[][] field) {
-        if (field[left][right].equals("O")) {
+    private static void shootAtCoordinates(int left, int right, String[][] field, String[][] fogOfWar) {
+        if (field[left][right].equals("O") || field[left][right].equals("X")) {
+            fogOfWar[left][right] = "X";
             field[left][right] = "X";
-            showField(field);
+            showField(fogOfWar);
             System.out.println("\nYou hit a ship!\n");
-
-            return true;
         } else {
+            fogOfWar[left][right] = "M";
             field[left][right] = "M";
+            showField(fogOfWar);
             System.out.println("\nYou missed !\n");
-            showField(field);
-
-            return false;
         }
+    }
+
+    private static boolean checkRemainingShips(String[][] field) {
+        for (String[] row : field) {
+            for (String cel : row ) {
+                if (cel.equals("O")) {
+                    return true;
+                }
+            }
+        }
+
+        System.out.println("You sank the last ship. You won. Congratulations!");
+
+        return false;
     }
 }
 
